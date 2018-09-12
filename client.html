@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- Google chrome does not allow Autoplay without client gesture. Please use Mozilla Firefox to run this file -->
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Bitalino Client</title>
+		<link rel="stylesheet" href="css/style.css">
+		<script src="js/jquery-3.3.1.min.js"></script>
+		<style>
+			#client_video {
+			position: fixed;
+			right: 0;
+			bottom: 0;
+			min-width: 100%; 
+			min-height: 100%;
+		}
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="websocket_status">
+				<span id="websocket_3_status"></span>
+			</div>
+		</div>
+		<div class="container video_container">
+			<video id='client_video' controls>
+				<source id="mp4_src" src="" type="video/mp4">
+			</video>
+		</div>
+	</body>
+	
+	<script>
+		websocket_3 = new WebSocket("ws://127.0.0.1:6890/");
+		video_id = document.getElementById('client_video');
+		video_source = document.getElementById('mp4_src');
+		
+		websocket_3.onerror = function(event) {
+			document.getElementById('websocket_3_status').innerHTML = 'Socket 6890 connection failed';
+		}
+		
+		websocket_3.onopen = function(msg) {
+			document.getElementById('websocket_3_status').innerHTML = 'Socket 6890 connection success';
+		}
+		
+		websocket_3.onclose = function(msg) {
+			document.getElementById('websocket_3_status').innerHTML = 'Socket 6890 connection closed';
+		}
+		
+		websocket_3.onmessage = function (event) {
+			
+			data = JSON.parse(event.data);
+			switch (data.type) {
+				case 'video_state':
+					if(data.value == 'loaded'){
+						video_source.src = "video/"+data.id+".mp4";
+						video_id.load();
+						video_id.controls = true;
+						 if (video_id.mozRequestFullScreen) {
+							video_id.mozRequestFullScreen();
+						  } else if (element.webkitRequestFullScreen) {
+							video_id.webkitRequestFullScreen();
+						  }  
+					}
+					if(data.value == 'playing'){
+						video_id.play();
+						websocket_3.send(JSON.stringify({action: 'video_playing', value: video_id.currentTime, id: data.id}));
+					}
+					if(data.value == 'stopped'){
+						video_id.pause();
+						websocket_3.send(JSON.stringify({action: 'video_paused', value: video_id.currentTime, id: data.id}));
+					}
+				break;
+				default:
+					console.error("unsuppored event");
+			}
+		};
+	</script>
+</html>

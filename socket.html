@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+            .buttons {
+                font-size: 4em;
+                display: flex;
+                justify-content: center;
+            }
+            .button, .value {
+                line-height: 1;
+                padding: 2rem;
+                margin: 2rem;
+                border: medium solid;
+                min-height: 1em;
+                min-width: 1em;
+            }
+            .button {
+                cursor: pointer;
+                user-select: none;
+            }
+            .minus {
+                color: red;
+            }
+            .plus {
+                color: green;
+            }
+            .value {
+                min-width: 2em;
+            }
+            .state {
+                font-size: 2em;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="buttons">
+            <div class="minus button">-</div>
+            <div class="value">?</div>
+            <div class="plus button">+</div>
+        </div>
+        <div class="state">
+            <span class="users">?</span> online
+        </div>
+        <div class="bitalino_connect button">
+        	Start Bitalino
+        </div>
+        <span class="bitalino_status">Bitalino Not Connected</span>
+        <div class="bitalino_record button">
+        	Record Data on Bitalino
+        </div>
+        <span class="bitalino_record_status">Bitalino Not Recording</span>
+ 
+		 <div style="text-align:center"> 
+		  <button class= "bitalino_record">Play</button>
+		  <button class= "bitalino_record_stop">Pause</button> 
+		  <br><br>
+		  <video id="video1" width="720">
+		    <source src="video/ozzy_man.mp4" type="video/mp4">
+		   Your browser does not support HTML5 video.
+		  </video>
+		</div>
+        
+        <script>
+        
+        var myVideo = document.getElementById("video1"); 
+		var minus = document.querySelector('.minus'),
+        plus = document.querySelector('.plus'),
+        value = document.querySelector('.value'),
+        users = document.querySelector('.users'),
+        bitalino_connect = document.querySelector('.bitalino_connect'),
+        bitalino_status = document.querySelector('.bitalino_status'),
+        bitalino_record = document.querySelector('button.bitalino_record'),
+        bitalino_record_stop = document.querySelector('button.bitalino_record_stop'),
+        bitalino_record_status = document.querySelector('.bitalino_record_status'),
+        websocket_2 = new WebSocket("ws://127.0.0.1:6888/");
+        websocket = new WebSocket("ws://127.0.0.1:6789/");
+		
+        	
+    	bitalino_record.onclick = function (event) {
+        	websocket.send(JSON.stringify({action: 'bitalino_record'}));
+        	if (myVideo.paused) 
+                myVideo.play(); 
+            else 
+                myVideo.pause();
+        }
+    	bitalino_record_stop.onclick = function (event) {
+    		myVideo.pause();
+    		websocket_2.send(JSON.stringify({action: 'bitalino_record_stop'}));
+        	
+        }
+    	bitalino_connect.onclick = function (event) {
+        	websocket.send(JSON.stringify({action: 'bitalino_connect'}));
+        }
+        minus.onclick = function (event) {
+            websocket.send(JSON.stringify({action: 'minus'}));
+        }
+        plus.onclick = function (event) {
+            websocket.send(JSON.stringify({action: 'plus'}));
+        }
+        websocket.onmessage = function (event) {
+            data = JSON.parse(event.data);
+            switch (data.type) {
+                case 'state':
+                    value.textContent = data.value;
+                    break;
+                case 'users':
+                    users.textContent = (
+                        data.count.toString() + " user" +
+                        (data.count == 1 ? "" : "s"));
+                    break;
+                case 'bitalino_status':
+                	bitalino_status.textContent = data.bitalino_status.toString();
+                	break;
+                case 'bitalino_record_status':
+                	bitalino_record_status.textContent = data.bitalino_record_status.toString();
+                	break;	
+                default:
+                    console.error(
+                        "unsupported event", data);
+            }
+        };
+        </script>
+    </body>
+</html>

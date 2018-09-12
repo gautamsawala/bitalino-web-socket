@@ -21,7 +21,7 @@ keep_recoding = 1
 #Users on web socket
 USERS = set()
 BITALINO = set()
-current_directory = "somethingIsWrong"
+#current_directory = "somethingIsWrong"
 
 @asyncio.coroutine
 def register(websocket):
@@ -30,7 +30,8 @@ def register(websocket):
 @asyncio.coroutine
 def unregister(websocket):
     USERS.remove(websocket)
-    
+
+'Connect to bitalino with the mac-address sent by the button click in server.html'
 @asyncio.coroutine
 def connect_bitalino(macAddress):
     device_added = 0
@@ -55,11 +56,13 @@ def connect_bitalino(macAddress):
         yield from asyncio.wait([user.send(message) for user in USERS])
         print('failed to initiate device with mac: '+ macAddress)
         
+'Logs the noise in the console. Only works for EDA. 0 -> no noise, repeatetive 1-> noise'
 def printNoise():
     threading.Timer(1.0, printNoise).start()
     for bitalino in BITALINO:
         print(bitalino.macAddress+':'+str(bitalino.noise))
-            
+
+'Starts recording from Bitalino and writes to the file, make sure you have output/ folder.'            
 def record_from_bitalino():
     global keep_recoding
     global current_directory
@@ -96,6 +99,7 @@ def record_from_bitalino():
     message = json.dumps({'type': 'record_status', 'value': 'stopped'})
     yield from asyncio.wait([user.send(message) for user in USERS])
 
+'Updates the file with values of which sensor is attached to what input'
 def update_sensor_values(value):
     #split the channel values recieved from front end and convert the into string to write to file.
     print(value)

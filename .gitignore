@@ -1,0 +1,5 @@
+#ignore the data collected from recording session
+*.txt
+*.xlsx
+#ignore the video files
+*.mp4

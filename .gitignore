@@ -3,3 +3,4 @@
 *.xlsx
 #ignore the video files
 *.mp4
+*.pyc
